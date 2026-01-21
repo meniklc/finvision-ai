@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 import json
 from django.db.models.functions import TruncMonth
+from .ml_kmeans import user_spending_type
 
 @login_required
 def dashboard(request):
@@ -39,6 +40,24 @@ def dashboard(request):
     for m in monthly_data:
         months.append(m['month'].strftime("%b %Y"))
         month_totals.append(float(m['total']))
+    
+    user_type, ml_data = user_spending_type()
+    # ML BASED INSIGHTS
+    ml_tips = []
+
+    if user_type == "Saver":
+        ml_tips.append("Excellent! You are managing your money very well.")
+        ml_tips.append("Consider investing some savings for future goals.")
+
+    elif user_type == "Balanced":
+        ml_tips.append("Good job! Your spending is balanced.")
+        ml_tips.append("Try to save a little more each month.")
+
+    elif user_type == "Spender":
+        ml_tips.append("Alert! You are spending too much.")
+        ml_tips.append("Create a strict monthly budget.")
+        ml_tips.append("Cut unnecessary expenses like shopping & food delivery.")
+
 
     # 🧠 AI TIPS LOGIC
     # AI TIPS
@@ -72,7 +91,9 @@ def dashboard(request):
         'amounts': json.dumps(amounts),
         'months': json.dumps(months),
         'month_totals': json.dumps(month_totals),
-        'tips': tips
+        'tips': tips,
+        'user_type': user_type,
+        'ml_tips': ml_tips
     }
 
     return render(request, 'dashboard.html', context)

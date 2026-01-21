@@ -69,6 +69,15 @@
     <li>⚡ {{ tip }}</li>
 {% endfor %}
 </ul>
+<h3>ML Spending Pattern</h3>
+<p><b>Your spending type:</b> {{ user_type }}</p>
+<h3>ML Based Insights</h3>
+<ul>
+{% for tip in ml_tips %}
+    <li>🤖 {{ tip }}</li>
+{% endfor %}
+</ul>
+
 
 </body>
 </html>
