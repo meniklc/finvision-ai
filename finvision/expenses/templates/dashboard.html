@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>Dashboard</h2>
+
+<h3>Total Expense: ₹{{ total }}</h3>
+
+<h3>All Expenses</h3>
+<ul>
+{% for e in expenses %}
+    <li>{{ e.category }} - {{ e.amount }} - {{ e.date }}</li>
+{% endfor %}
+</ul>
+
+<h3>Category Summary</h3>
+<ul>
+{% for c in category_data %}
+    <li>{{ c.category }} : ₹{{ c.total }}</li>
+{% endfor %}
+</ul>
+
+<h3>Category Spending Chart</h3>
+<canvas id="pieChart"></canvas>
+
+<script>
+    var categories = {{ categories|safe }};
+    var amounts = {{ amounts|safe }};
+
+    var ctx = document.getElementById('pieChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: amounts
+            }]
+        }
+    });
+</script>
+<h3>Monthly Spending Chart</h3>
+<canvas id="barChart"></canvas>
+
+<script>
+    var months = {{ months|safe }};
+    var monthTotals = {{ month_totals|safe }};
+
+    var ctx2 = document.getElementById('barChart').getContext('2d');
+
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: "Monthly Spending",
+                data: monthTotals
+            }]
+        }
+    });
+</script>
+<h3>AI Suggestions</h3>
+<ul>
+{% for tip in tips %}
+    <li>⚡ {{ tip }}</li>
+{% endfor %}
+</ul>
+
+</body>
+</html>
