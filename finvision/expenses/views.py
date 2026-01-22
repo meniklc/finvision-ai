@@ -97,3 +97,41 @@ def dashboard(request):
     }
 
     return render(request, 'dashboard.html', context)
+
+def monthly_dashboard(request):
+
+    selected_month = request.GET.get('month')
+
+    expenses = Expense.objects.all()
+
+    if selected_month:
+        expenses = expenses.filter(
+            date__startswith=selected_month
+        )
+
+    total = expenses.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    category_data = expenses.values(
+        'category'
+    ).annotate(
+        total=Sum('amount')
+    )
+
+    categories = [c['category'] for c in category_data]
+    amounts = [float(c['total']) for c in category_data]
+
+    context = {
+        'expenses': expenses,
+        'total': total,
+        'categories': json.dumps(categories),
+        'amounts': json.dumps(amounts),
+        'selected_month': selected_month
+    }
+
+    return render(
+        request,
+        'monthly_dashboard.html',
+        context
+    )

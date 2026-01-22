@@ -1,83 +1,190 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>FinVision AI Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Chart JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .chart-card{ height: 430px; }
+        .chart-container{ height: 330px; }
+
+        .gradient-nav{
+            background: linear-gradient(90deg,#667eea,#764ba2);
+        }
+    </style>
 </head>
-<body>
 
-<h2>Dashboard</h2>
+<body class="bg-light">
 
-<h3>Total Expense: ₹{{ total }}</h3>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark gradient-nav">
+  <div class="container-fluid">
 
-<h3>All Expenses</h3>
-<ul>
-{% for e in expenses %}
-    <li>{{ e.category }} - {{ e.amount }} - {{ e.date }}</li>
-{% endfor %}
-</ul>
+    <a class="navbar-brand" href="/dashboard/">FinVision AI</a>
 
-<h3>Category Summary</h3>
-<ul>
-{% for c in category_data %}
-    <li>{{ c.category }} : ₹{{ c.total }}</li>
-{% endfor %}
-</ul>
+    <div class="d-flex align-items-center">
 
-<h3>Category Spending Chart</h3>
-<canvas id="pieChart"></canvas>
+      <!-- Monthly Dashboard Button -->
+      <a href="/monthly-dashboard/" 
+      class="btn btn-outline-light me-2">
+      <i class="fa-solid fa-calendar"></i> Monthly View
+      </a>
 
-<script>
-    var categories = {{ categories|safe }};
-    var amounts = {{ amounts|safe }};
+      <!-- Dark Mode -->
+      <button class="btn btn-outline-light me-2" 
+      onclick="toggleDark()">🌙</button>
 
-    var ctx = document.getElementById('pieChart').getContext('2d');
+      <!-- Profile Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle" 
+        data-bs-toggle="dropdown">
+        <i class="fa-solid fa-user"></i> {{ request.user }}
+        </button>
 
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: amounts
-            }]
-        }
-    });
-</script>
-<h3>Monthly Spending Chart</h3>
-<canvas id="barChart"></canvas>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Profile</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form method="post" action="/accounts/logout/">
+            {% csrf_token %}
+            <button class="dropdown-item">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+            </form>
+          </li>
+        </ul>
+      </div>
 
-<script>
-    var months = {{ months|safe }};
-    var monthTotals = {{ month_totals|safe }};
+    </div>
+  </div>
+</nav>
 
-    var ctx2 = document.getElementById('barChart').getContext('2d');
+<!-- MAIN CONTAINER -->
+<div class="container mt-4">
 
-    new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: months,
-            datasets: [{
-                label: "Monthly Spending",
-                data: monthTotals
-            }]
-        }
-    });
-</script>
-<h3>AI Suggestions</h3>
-<ul>
-{% for tip in tips %}
-    <li>⚡ {{ tip }}</li>
-{% endfor %}
-</ul>
-<h3>ML Spending Pattern</h3>
-<p><b>Your spending type:</b> {{ user_type }}</p>
-<h3>ML Based Insights</h3>
+<!-- CARDS -->
+<div class="row">
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h5><i class="fa-solid fa-wallet"></i> Total Expense</h5>
+<h3>₹ {{ total }}</h3>
+</div>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h5><i class="fa-solid fa-chart-line"></i> Spending Type</h5>
+<h3>{{ user_type }}</h3>
+</div>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h5><i class="fa-solid fa-robot"></i> AI Insights</h5>
 <ul>
 {% for tip in ml_tips %}
-    <li>🤖 {{ tip }}</li>
+<li>{{ tip }}</li>
 {% endfor %}
 </ul>
+</div>
+</div>
+</div>
 
+</div>
+
+<!-- CHARTS -->
+<div class="row mt-4">
+
+<div class="col-md-6">
+<div class="card shadow-sm p-3 chart-card">
+<h5>Category Wise Spending</h5>
+<div class="chart-container">
+<canvas id="pieChart"></canvas>
+</div>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="card shadow-sm p-3 chart-card">
+<h5>Monthly Spending</h5>
+<div class="chart-container">
+<canvas id="barChart"></canvas>
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+<!-- LOAD DATA -->
+<script>
+var categories = {{ categories|safe }};
+var amounts = {{ amounts|safe }};
+var months = {{ months|safe }};
+var monthTotals = {{ month_totals|safe }};
+</script>
+
+<!-- PIE -->
+<script>
+new Chart(document.getElementById('pieChart'), {
+type:'pie',
+data:{
+labels:categories,
+datasets:[{data:amounts}]
+},
+options:{
+responsive:true,
+maintainAspectRatio:false,
+animation:{duration:1500}
+}
+});
+</script>
+
+<!-- BAR -->
+<script>
+new Chart(document.getElementById('barChart'), {
+type:'bar',
+data:{
+labels:months,
+datasets:[{
+label:"Monthly Expense",
+data:monthTotals
+}]
+},
+options:{
+responsive:true,
+maintainAspectRatio:false,
+animation:{duration:1500}
+}
+});
+</script>
+
+<!-- DARK MODE -->
+<script>
+function toggleDark(){
+document.body.classList.toggle("bg-dark");
+document.body.classList.toggle("text-white");
+}
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
